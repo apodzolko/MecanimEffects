@@ -1,0 +1,91 @@
+using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace MecanimEffects {
+	/// <summary>
+	/// Allows for visual and sound effects represented as GameObjects to be bound to mecanim states of given animator.
+	/// </summary>
+	public sealed class EffectsController : MonoBehaviour {
+		/// <summary>
+		/// The animator shortcut.
+		/// </summary>
+		public Animator animator;
+		/// <summary>
+		/// Effects are bound to mecanim states with bindings.
+		/// </summary>
+		public AnimatorStateBinding[] bindings;
+		/// <summary>
+		/// The state info for all animator's layers.
+		/// </summary>
+		[System.NonSerialized]
+		public LayerInfo[] layerState = new LayerInfo[0];
+		/// <summary>
+		/// Arguments for updating effects.
+		/// </summary>
+		private EffectUpdateEventArgs updateEventArgs = new EffectUpdateEventArgs();
+		/// <summary>
+		/// Tries to provide good default values.
+		/// </summary>
+		private void Reset() {
+			if(animator == null) animator = GetComponent<Animator>();
+			if(animator != null) layerState = new LayerInfo[animator.layerCount];
+			updateEventArgs.controller = this;
+		}
+		/// <summary>
+		/// Awakes this instance.
+		/// </summary>
+		private void Awake() {
+			Reset();
+		}
+		/// <summary>
+		/// Updates effects bindings for this instance.
+		/// </summary>
+		private void Update() {
+			if(layerState == null || layerState.Length != animator.layerCount) return;
+			if(animator == null) return;
+			var enter = false;
+			var update = false;
+			var exit = false;
+			for(var i = 0; i < animator.layerCount; i++) {
+				updateEventArgs.layerIndex = i;
+				enter = update = exit = false;
+				UpdateLayerState(i, ref enter, ref update, ref exit);
+				UpdateLayerStateBindings(i, enter, update, exit);
+			}
+		}
+		/// <summary>
+		/// Updates state information for the particular layer.
+		/// </summary>
+		private void UpdateLayerState(int index, ref bool enter, ref bool update, ref bool exit) {
+			if(animator.IsInTransition(index)) {
+				exit = !layerState[index].inTransition;
+				layerState[index].transition = animator.GetAnimatorTransitionInfo(index);
+				layerState[index].inTransition = true;
+			}
+			else {
+				var stateInfo = animator.GetCurrentAnimatorStateInfo(index);
+				enter = layerState[index].inTransition || layerState[index].state.nameHash != stateInfo.nameHash;
+				update = enter || layerState[index].state.nameHash == stateInfo.nameHash;
+				layerState[index].state = stateInfo;
+				layerState[index].inTransition = false;
+			}
+		}
+		/// <summary>
+		/// Updates the layer state bindings.
+		/// </summary>
+		private void UpdateLayerStateBindings(int index, bool enter, bool update, bool exit) {
+			foreach(var binding in EnumerateBindings(index)) {
+				if(enter) binding.Enter(updateEventArgs);
+				if(update) binding.Update(updateEventArgs);
+				if(exit) binding.Exit(updateEventArgs);
+			}
+		}
+		/// <summary>
+		/// Enumerates the animator state bindings bound to particular state.
+		/// </summary>
+		private IEnumerable<AnimatorStateBinding> EnumerateBindings(int layerIndex) {
+			return bindings.Where(b => layerState[layerIndex].state.IsName(b.stateName));
+		}
+	}
+}
