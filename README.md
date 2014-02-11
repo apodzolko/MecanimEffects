@@ -33,6 +33,12 @@ Now you can run the scene and see effect appears when object goes into selected 
 * Use Reset On Replay flag in the Effect inspector to send Reset message to effect every time it is played.
 * ???
 
+## License
+
+[WTFPL – Do What the Fuck You Want to Public License](http://www.wtfpl.net/)
+
+See license.txt for full license text.
+
 ## Roadmap
 
 * Custom inspector UI - default inspector looks creepy and unintuintive, a new cool Inspector UI is coming soon!
