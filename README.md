@@ -1,14 +1,14 @@
 MecanimEffects
 ==============
 
-Bind visual effects to Mecanim (Unity 3D animation system) states in editor.
+Bind visual effects to Mecanim (Unity 3D animation system) states in the editor.
 
 ## What is Effect
 
 We define effect here as a GameObject prefab. It can contain animated textures, particle emitters, audio sources, anything you want. Follow next few steps to create a sample effect.
 
 1. Create an empty GameObject with Game Object > Create empty menu command.
-2. In the Inspector window click Add Component button and select Effecs > Particle system.
+2. In the Inspector window click Add Component button and select Effects > Particle system.
 3. Drag that game object from Hierarchy to Project window to create emty prefab.
 4. That's it!
 
