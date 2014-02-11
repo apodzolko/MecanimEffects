@@ -1,14 +1,14 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Linq;
 
 namespace MecanimEffects {
 	/// <summary>
-	/// Visual and sound effect represented as object.
+	/// Visual effect options.
 	/// </summary>
 	[System.Serializable]
 	public sealed class AnimatorEffect {
 		/// <summary>
-		/// The parent object for instantiating a prefab and playing a sound.
+		/// The parent object for instantiating a prefab.
 		/// </summary>
 		public GameObject subject;
 		/// <summary>
@@ -31,10 +31,6 @@ namespace MecanimEffects {
 		/// The playing subject.
 		/// </summary>
 		private GameObject playingSubject;
-		/// <summary>
-		/// The playing source.
-		/// </summary>
-		private AudioSource playingSource;
 		/// <summary>
 		/// Plays the effect if additional conditions are met.
 		/// </summary>
