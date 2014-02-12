@@ -31,7 +31,36 @@ Now you can run the scene and see effect appears when object goes into selected 
 * By default effects appears as transform children of the object EffectsController is attached to. You can change this behavior by setting the Subject property in the Effect inspector.
 * You can use Animator component from any GameObject in the scene.
 * Use Reset On Replay flag in the Effect inspector to send Reset message to effect every time it is played.
-* ???
+* 
+
+## Scripting effects
+
+Mecanim Effects utilizes [Unity 3D messaging system](http://docs.unity3d.com/Documentation/ScriptReference/Component.SendMessage.html) to introduce the custom scripting feature. EffectsController can send three types of messages to the game object it is attached to.
+
+* **Enter Message** is sent in Update cycle in the first frame of the selected animator state;
+* **Timer Message** is sent in Update cycle when timer reaches the timer treshold and only if timer treshold is more than zero;
+* **Exit Message** is sent in Update cycle in the frame following the last frame of the selected animator state.
+
+Messages are sent only if name is explicitly specified in the Inspector window. When appopriate field is blank no message is sent to the object. Messages are sent using [SendMessageOptions.RequireReceiver](http://docs.unity3d.com/Documentation/ScriptReference/SendMessageOptions.RequireReceiver.html) option value, so there will be a warning about unhandled messages.
+
+Example of message handler in C#:
+
+````c#
+void OnBaseLayerMoveEnter(EffectUpdateEventArgs e) {
+   // your logic here
+}
+````
+
+EffectUpdateEventArgs class definition: 
+
+````c#
+public class EffectUpdateEventArgs : System.EventArgs {
+  public EffectsController controller;
+  public int layerIndex;
+}
+````
+
+Using EffectsController instance along with layerIndex value you can query and manipulate the handled animator's state or transition information. EffectUpdateEventArgs instance is sent along with every message. You are not expected to store the reference to the instance between calls or change its fields values.
 
 ## License
 
