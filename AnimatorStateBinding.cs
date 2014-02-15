@@ -12,13 +12,17 @@ namespace MecanimEffects {
 		/// </summary>
 		public string stateName;
 		/// <summary>
-		/// The name for the message sent in the first frame of state.
+		/// The name for the message sent in the first frame of the bound state.
 		/// </summary>
 		public string enterMessage;
 		/// <summary>
-		/// The name for the message sent in the frame following the last frame of state.
+		/// The name for the message sent in the frame following the last frame of the bound state.
 		/// </summary>
 		public string exitMessage;
+		/// <summary>
+		/// The name for the message sent every frame of the bound state.
+		/// </summary>
+		public string updateMessage;
 		/// <summary>
 		/// The name of the message set when timer reached each one of treshold's values.
 		/// </summary>
@@ -49,6 +53,8 @@ namespace MecanimEffects {
 		/// </summary>
 		public void Update(EffectUpdateEventArgs e) {
 			//Debug.Log("AnimatorStateBindig.Update: " + stateName);
+			if(!string.IsNullOrEmpty(updateMessage))
+				e.controller.gameObject.SendMessage(updateMessage, e, SendMessageOptions.RequireReceiver);
 			if(string.IsNullOrEmpty(timerMessage)) return;
 			if(timerTreshold == .0f) return;
 			var normalizedTime = e.controller.layerState[e.layerIndex].state.normalizedTime;
