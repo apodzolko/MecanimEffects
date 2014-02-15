@@ -38,6 +38,7 @@ Now you can run the scene and see effect appears when object goes into selected 
 Mecanim Effects utilizes [Unity 3D messaging system](http://docs.unity3d.com/Documentation/ScriptReference/Component.SendMessage.html) to introduce the custom scripting feature. EffectsController can send three types of messages to the game object it is attached to.
 
 * **Enter Message** is sent in Update cycle in the first frame of the selected animator state;
+* **Update Message** is sent in Update cycle every frame the selected animator state remains active;
 * **Timer Message** is sent in Update cycle when timer reaches the timer treshold and only if timer treshold is more than zero;
 * **Exit Message** is sent in Update cycle in the frame following the last frame of the selected animator state.
 
