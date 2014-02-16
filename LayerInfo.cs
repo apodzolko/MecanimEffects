@@ -18,5 +18,17 @@ namespace MecanimEffects {
 		/// If animator is in transition.
 		/// </summary>
 		public bool inTransition;
+		/// <summary>
+		/// State timer resets every time state gets looped.
+		/// </summary>
+		public float stateSeconds;
+		/// <summary>
+		/// State loops counter.
+		/// </summary>
+		public int loopCount;
+		/// <summary>
+		/// State time including loops.
+		/// </summary>
+		public float stateSecondsTotal;
 	}
 }

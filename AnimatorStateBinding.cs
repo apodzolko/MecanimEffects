@@ -57,14 +57,10 @@ namespace MecanimEffects {
 				e.controller.gameObject.SendMessage(updateMessage, e, SendMessageOptions.RequireReceiver);
 			if(string.IsNullOrEmpty(timerMessage)) return;
 			if(timerTreshold == .0f) return;
-			var normalizedTime = e.controller.layerState[e.layerIndex].state.normalizedTime;
-			var length = e.controller.layerState[e.layerIndex].state.length;
-			var loopsCount = Mathf.Floor(normalizedTime);
-			var time = (normalizedTime - loopsCount) * length;
-			if(timerNotificationSent && time <= timerTreshold) {
+			if(timerNotificationSent && e.controller.layerState[e.layerIndex].stateSeconds <= timerTreshold) {
 				timerNotificationSent = false;
 			}
-			else if(!timerNotificationSent && time > timerTreshold) {
+			else if(!timerNotificationSent && e.controller.layerState[e.layerIndex].stateSeconds > timerTreshold) {
 				e.controller.gameObject.SendMessage(timerMessage, e, SendMessageOptions.RequireReceiver);
 				timerNotificationSent = true;
 			}

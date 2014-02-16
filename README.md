@@ -3,7 +3,7 @@ MecanimEffects
 
 Bind visual effects to Mecanim (Unity 3D animation system) states in the editor.
 
-## What is Effect
+## What is effect
 
 We define effect here as a GameObject prefab. It can contain animated textures, particle emitters, audio sources, anything you want. Follow next few steps to create a sample effect.
 
@@ -35,7 +35,11 @@ Now you can run the scene and see effect appears when object goes into selected 
 
 ## Scripting effects
 
-Mecanim Effects utilizes [Unity 3D messaging system](http://docs.unity3d.com/Documentation/ScriptReference/Component.SendMessage.html) to introduce the custom scripting feature. EffectsController can send three types of messages to the game object it is attached to.
+Mecanim Effects utilizes [Unity 3D messaging system](http://docs.unity3d.com/Documentation/ScriptReference/Component.SendMessage.html) to introduce the custom scripting feature. Also state information and timer values are precalculated every frame and can be used in your scripts.
+
+### Messages
+
+EffectsController can send three types of messages to the game object it is attached to.
 
 * **Enter Message** is sent in Update cycle in the first frame of the selected animator state;
 * **Update Message** is sent in Update cycle every frame the selected animator state remains active;
@@ -43,6 +47,8 @@ Mecanim Effects utilizes [Unity 3D messaging system](http://docs.unity3d.com/Doc
 * **Exit Message** is sent in Update cycle in the frame following the last frame of the selected animator state.
 
 Messages are sent only if name is explicitly specified in the Inspector window. When appopriate field is blank no message is sent to the object. Messages are sent using [SendMessageOptions.RequireReceiver](http://docs.unity3d.com/Documentation/ScriptReference/SendMessageOptions.RequireReceiver.html) option value, so there will be a warning about unhandled messages.
+
+At the moment an update message is sent along with enter message in the same update cycle. However this behavior is under question and may be changed in the future.
 
 Example of message handler in C#:
 
@@ -52,7 +58,9 @@ void OnBaseLayerMoveEnter(EffectUpdateEventArgs e) {
 }
 ````
 
-EffectUpdateEventArgs class definition: 
+### Timers and states
+
+Current state and transition information is provided with EffectUpdateEventArgs class instace.  Here is the EffectUpdateEventArgs class definition: 
 
 ````c#
 public class EffectUpdateEventArgs : System.EventArgs {
@@ -61,7 +69,23 @@ public class EffectUpdateEventArgs : System.EventArgs {
 }
 ````
 
-Using EffectsController instance along with layerIndex value you can query and manipulate the handled animator's state or transition information. EffectUpdateEventArgs instance is sent along with every message. You are not expected to store the reference to the instance between calls or change its fields values.
+Using controller.layerState array along with layerIndex value you can query and manipulate the handled animator's state or transition information. EffectUpdateEventArgs instance is sent along with every message. 
+
+Timings are essential for building game effects and animations. MecanimEffects provides you with Timer Message and the animator state timer values are calculated each Update call. You can use them within your messsage handlers. MecanimEffects provides following values:
+
+1. State seconds - state time in seconds from the beginning of current iteration.
+2. State seconds total - state time in seconds from the beginning of the first iteration.
+3. Loop count - state iteration count.
+
+Example of getting a value:
+
+````c#
+void OnMyStateUpdate(EffectUpdateEventArgs e) {
+   var stateSeconds = e.controller.layerState[e.layerIndex].stateSeconds;
+}
+````
+
+You are not expected to store the reference to the instance of EffectUpdateEventArgs between calls or change its fields values. You are not expected to use layerState array outside of EffectController's message hadlers. This is because Unity 3D does not determine the order of calling Update on GameObject and therefore you can accidentaly get data from previous frame or uninitialized references in the first frame.
 
 ## License
 

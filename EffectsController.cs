@@ -69,6 +69,9 @@ namespace MecanimEffects {
 				update = enter || layerState[index].state.nameHash == stateInfo.nameHash;
 				layerState[index].state = stateInfo;
 				layerState[index].inTransition = false;
+				layerState[index].loopCount = Mathf.FloorToInt(stateInfo.normalizedTime);
+				layerState[index].stateSeconds = stateInfo.length * (stateInfo.normalizedTime - layerState[index].loopCount);
+				layerState[index].stateSecondsTotal = stateInfo.length * layerState[index].loopCount;
 			}
 		}
 		/// <summary>
