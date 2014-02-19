@@ -9,7 +9,7 @@ We define effect here as a GameObject prefab. It can contain animated textures, 
 
 1. Create an empty GameObject with Game Object > Create empty menu command.
 2. In the Inspector window click Add Component button and select Effects > Particle system.
-3. Drag that game object from Hierarchy to Project window to create emty prefab.
+3. Drag that game object from Hierarchy to Project window to create a new prefab.
 4. That's it!
 
 ## Using effects with Unity Editor
