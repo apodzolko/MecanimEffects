@@ -8,58 +8,30 @@ namespace MecanimEffects {
 	[System.Serializable]
 	public sealed class AnimatorEffect {
 		/// <summary>
-		/// The parent object for instantiating a prefab.
+		/// The effect's object.
 		/// </summary>
-		public GameObject subject;
-		/// <summary>
-		/// The effect's prefab.
-		/// </summary>
-		public GameObject prefab;
+		public GameObject instance;
 		/// <summary>
 		/// Send "Reset" message to the effect object when it played another time.
 		/// </summary>
 		public bool resetOnReplay;
 		/// <summary>
-		/// The cached effect instance.
-		/// </summary>
-		private GameObject cachedInstance;
-		/// <summary>
-		/// If this effect is currently playing.
-		/// </summary>
-		private bool playing;
-		/// <summary>
-		/// The playing subject.
-		/// </summary>
-		private GameObject playingSubject;
-		/// <summary>
-		/// Plays the effect if additional conditions are met.
+		/// Plays the effect.
 		/// </summary>
 		public void Play(EffectUpdateEventArgs e) {
-			if(prefab == null) return;
-			if(playing) return;
-			playing = true;
-			playingSubject = this.subject == null ? e.controller.gameObject : this.subject;
-			if(cachedInstance == null) {
-				var position = playingSubject.transform.position;
-				var rotation = playingSubject.transform.rotation;
-				cachedInstance = GameObject.Instantiate(prefab, position, rotation) as GameObject;
-				cachedInstance.transform.parent = playingSubject.transform;
-			}
-			else {
-				cachedInstance.SetActive(true);
-				cachedInstance.transform.parent = playingSubject.transform;
-				if(resetOnReplay)
-					cachedInstance.SendMessage("Reset", SendMessageOptions.RequireReceiver);
-			}
+			if(instance == null) return;
+			if(instance.activeSelf) return;
+			instance.SetActive(true);
+			if(resetOnReplay)
+				instance.SendMessage("Reset", SendMessageOptions.RequireReceiver);
 		}
 		/// <summary>
-		/// Stops playing effect.
+		/// Stops playing the effect.
 		/// </summary>
 		public void Stop(EffectUpdateEventArgs e) {
-			if(cachedInstance == null) return;
-			if(!playing) return;
-			playing = false;
-			cachedInstance.SetActive(false);
+			if(instance == null) return;
+			if(!instance.activeSelf) return;
+			instance.SetActive(false);
 		}
 	}
 }
