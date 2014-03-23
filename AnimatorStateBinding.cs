@@ -8,37 +8,46 @@ namespace MecanimEffects {
 	[System.Serializable]
 	public sealed class AnimatorStateBinding {
 		/// <summary>
-		/// The name of the state.
+		/// The name of the state (readonly).
 		/// </summary>
 		public string stateName;
 		/// <summary>
-		/// The name for the message sent in the first frame of the bound state.
+		/// The name for the message sent in the first frame of the bound state (readonly).
 		/// </summary>
 		public string enterMessage;
 		/// <summary>
-		/// The name for the message sent in the frame following the last frame of the bound state.
+		/// The name for the message sent in the frame following the last frame of the bound state (readonly).
 		/// </summary>
 		public string exitMessage;
 		/// <summary>
-		/// The name for the message sent every frame of the bound state.
+		/// The name for the message sent every frame of the bound state (readonly).
 		/// </summary>
 		public string updateMessage;
 		/// <summary>
-		/// The name of the message set when timer reached each one of treshold's values.
+		/// The name of the message set when timer reached each one of treshold's values (readonly).
 		/// </summary>
 		public string timerMessage;
 		/// <summary>
-		/// The timer tresholds.
+		/// The timer tresholds (readonly).
 		/// </summary>
 		public float timerTreshold;
 		/// <summary>
-		/// The effects what should be played along with this state.
+		/// The effects what should be played along with this state (readonly).
 		/// </summary>
 		public AnimatorEffect[] effects;
 		/// <summary>
 		/// Shows if timer notification was already sent in this loop.
 		/// </summary>
 		private bool timerNotificationSent;
+		/// <summary>
+		/// Reset this instance to default state.
+		/// </summary>
+		public void Reset() {
+			timerNotificationSent = false;
+			// HACK Null can be safely used here because EffectUpdateEventArgs argument is in fact not used.
+			// TODO Either stop passing EffectUpdateEventArgs in effects or create special effect stop-on-reset method.
+			StopAllEffects(null);
+		}
 		/// <summary>
 		/// When binding enters the active state all effects are started.
 		/// </summary>
@@ -72,6 +81,12 @@ namespace MecanimEffects {
 			//Debug.Log("AnimatorStateBindig.Exit: " + stateName);
 			if(!string.IsNullOrEmpty(exitMessage))
 				e.controller.gameObject.SendMessage(exitMessage, e, SendMessageOptions.RequireReceiver);
+			StopAllEffects(e);
+		}
+		/// <summary>
+		/// Stops all effects.
+		/// </summary>
+		private void StopAllEffects(EffectUpdateEventArgs e) {
 			System.Array.ForEach(effects, effect => effect.Stop(e));
 		}
 	}

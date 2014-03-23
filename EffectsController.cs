@@ -25,11 +25,15 @@ namespace MecanimEffects {
 		/// </summary>
 		private EffectUpdateEventArgs updateEventArgs = new EffectUpdateEventArgs();
 		/// <summary>
-		/// Tries to provide good default values.
+		/// Tries to provide good default values and allows reuse of this instance.
 		/// </summary>
 		private void Reset() {
 			if(animator == null) animator = GetComponent<Animator>();
-			if(animator != null) layerState = new LayerInfo[animator.layerCount];
+			if(animator != null) {
+				layerState = new LayerInfo[animator.layerCount];
+				foreach(var binding in bindings)
+					binding.Reset();
+			}
 			updateEventArgs.controller = this;
 		}
 		/// <summary>
