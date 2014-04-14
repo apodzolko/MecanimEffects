@@ -25,6 +25,10 @@ namespace MecanimEffects {
 		/// </summary>
 		private EffectUpdateEventArgs updateEventArgs = new EffectUpdateEventArgs();
 		/// <summary>
+		/// Previous state effects still active.
+		/// </summary>
+		private bool effectsActive;
+		/// <summary>
 		/// Tries to provide good default values and allows reuse of this instance.
 		/// </summary>
 		private void Reset() {
@@ -64,6 +68,9 @@ namespace MecanimEffects {
 		private void UpdateLayerState(int index, ref bool enter, ref bool update, ref bool exit) {
 			if(animator.IsInTransition(index)) {
 				exit = !layerState[index].inTransition;
+				if(exit) {
+					effectsActive = false;
+				}
 				layerState[index].transition = animator.GetAnimatorTransitionInfo(index);
 				layerState[index].inTransition = true;
 			}
@@ -71,6 +78,13 @@ namespace MecanimEffects {
 				var stateInfo = animator.GetCurrentAnimatorStateInfo(index);
 				enter = layerState[index].inTransition || layerState[index].state.nameHash != stateInfo.nameHash;
 				update = enter || layerState[index].state.nameHash == stateInfo.nameHash;
+				// HACK This is wrong way to tell prev state bindings to exit in case when transition length = 0.
+				if(enter && effectsActive) {
+					UpdateLayerStateBindings(index, false, false, true);
+				}
+				if(enter) {
+					effectsActive = true;
+				}
 				layerState[index].state = stateInfo;
 				layerState[index].inTransition = false;
 				layerState[index].loopCount = Mathf.FloorToInt(stateInfo.normalizedTime);
