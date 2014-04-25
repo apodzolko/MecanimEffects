@@ -44,50 +44,51 @@ namespace MecanimEffects {
 		/// </summary>
 		public void Reset() {
 			timerNotificationSent = false;
-			// HACK Null can be safely used here because EffectUpdateEventArgs argument is in fact not used.
-			// TODO Either stop passing EffectUpdateEventArgs in effects or create special effect stop-on-reset method.
+			// HACK Null can be safely used here because LayerInfo argument is in fact not used.
+			// TODO Either stop passing LayerInfo in effects or create special effect stop-on-reset method.
 			StopAllEffects(null);
 		}
 		/// <summary>
 		/// When binding enters the active state all effects are started.
 		/// </summary>
-		public void Enter(EffectUpdateEventArgs e) {
-			//Debug.Log("AnimatorStateBindig.Enter: " + stateName);
+		public void Enter(LayerInfo li) {
+			li.controller.Trace("AnimatorStateBinding.Enter: {0}", stateName);
 			if(!string.IsNullOrEmpty(enterMessage))
-				e.controller.gameObject.SendMessage(enterMessage, e, SendMessageOptions.RequireReceiver);
-			System.Array.ForEach(effects, effect => effect.Play(e));
+				li.controller.gameObject.SendMessage(enterMessage, li, SendMessageOptions.RequireReceiver);
+			System.Array.ForEach(effects, effect => effect.Play(li));
 		}
 		/// <summary>
-		/// Updates the active binding state.
+		/// Checks and sends update and timer messages when needed.
 		/// </summary>
-		public void Update(EffectUpdateEventArgs e) {
-			//Debug.Log("AnimatorStateBindig.Update: " + stateName);
+		public void Update(LayerInfo li) {
+			li.controller.Trace("AnimatorStateBinding.Update: {0}", stateName);
 			if(!string.IsNullOrEmpty(updateMessage))
-				e.controller.gameObject.SendMessage(updateMessage, e, SendMessageOptions.RequireReceiver);
+				li.controller.gameObject.SendMessage(updateMessage, li, SendMessageOptions.RequireReceiver);
 			if(string.IsNullOrEmpty(timerMessage)) return;
 			if(timerTreshold == .0f) return;
-			if(timerNotificationSent && e.controller.layerState[e.layerIndex].stateSeconds <= timerTreshold) {
+			if(timerNotificationSent && li.stateSeconds <= timerTreshold) {
 				timerNotificationSent = false;
 			}
-			else if(!timerNotificationSent && e.controller.layerState[e.layerIndex].stateSeconds > timerTreshold) {
-				e.controller.gameObject.SendMessage(timerMessage, e, SendMessageOptions.RequireReceiver);
+			else if(!timerNotificationSent && li.stateSeconds > timerTreshold) {
+				li.controller.Trace("AnimatorStateBinding.Update#Timer: {0}", stateName);
+				li.controller.gameObject.SendMessage(timerMessage, li, SendMessageOptions.RequireReceiver);
 				timerNotificationSent = true;
 			}
 		}
 		/// <summary>
 		/// When binding exits active state all effects are stopped.
 		/// </summary>
-		public void Exit(EffectUpdateEventArgs e) {
-			//Debug.Log("AnimatorStateBindig.Exit: " + stateName);
+		public void Exit(LayerInfo li) {
+			li.controller.Trace("AnimatorStateBinding.Exit: {0}", stateName);
 			if(!string.IsNullOrEmpty(exitMessage))
-				e.controller.gameObject.SendMessage(exitMessage, e, SendMessageOptions.RequireReceiver);
-			StopAllEffects(e);
+				li.controller.gameObject.SendMessage(exitMessage, li, SendMessageOptions.RequireReceiver);
+			StopAllEffects(li);
 		}
 		/// <summary>
 		/// Stops all effects.
 		/// </summary>
-		private void StopAllEffects(EffectUpdateEventArgs e) {
-			System.Array.ForEach(effects, effect => effect.Stop(e));
+		private void StopAllEffects(LayerInfo li) {
+			System.Array.ForEach(effects, effect => effect.Stop(li));
 		}
 	}
 }
