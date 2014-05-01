@@ -177,7 +177,7 @@ namespace MecanimEffects {
 				}
 				else {
 					// TODO This way transition time is inaccurate, but no other way to get it introduced yet.
-					layerState[layer].transitionSeconds = .0f;
+					layerState[layer].transitionSeconds = float.Epsilon;
 				}
 				layerState[layer].transition = animator.GetAnimatorTransitionInfo(layer);
 			}
@@ -187,7 +187,7 @@ namespace MecanimEffects {
 				layerState[layer].state = stateInfo;
 				layerState[layer].loopCount = Mathf.FloorToInt(stateInfo.normalizedTime);
 				layerState[layer].stateSeconds = stateInfo.length * (stateInfo.normalizedTime - layerState[layer].loopCount);
-				layerState[layer].stateSecondsTotal = stateInfo.length * layerState[layer].loopCount;
+				layerState[layer].stateSecondsTotal = stateInfo.length * stateInfo.normalizedTime;
 			}
 		}
 	}

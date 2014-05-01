@@ -44,9 +44,7 @@ namespace MecanimEffects {
 		/// </summary>
 		public void Reset() {
 			timerNotificationSent = false;
-			// HACK Null can be safely used here because LayerInfo argument is in fact not used.
-			// TODO Either stop passing LayerInfo in effects or create special effect stop-on-reset method.
-			StopAllEffects(null);
+			System.Array.ForEach(effects, effect => effect.Reset());
 		}
 		/// <summary>
 		/// When binding enters the active state all effects are started.
@@ -82,12 +80,6 @@ namespace MecanimEffects {
 			li.controller.Trace("AnimatorStateBinding.Exit: {0}", stateName);
 			if(!string.IsNullOrEmpty(exitMessage))
 				li.controller.gameObject.SendMessage(exitMessage, li, SendMessageOptions.RequireReceiver);
-			StopAllEffects(li);
-		}
-		/// <summary>
-		/// Stops all effects.
-		/// </summary>
-		private void StopAllEffects(LayerInfo li) {
 			System.Array.ForEach(effects, effect => effect.Stop(li));
 		}
 	}
