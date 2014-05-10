@@ -16,6 +16,10 @@ namespace MecanimEffects {
 		/// </summary>
 		public bool resetOnReplay;
 		/// <summary>
+		/// Continious effects does not restart if bound to two or more states.
+		/// </summary>
+		public bool continious;
+		/// <summary>
 		/// The play delay.
 		/// </summary>
 		public float playDelay;
