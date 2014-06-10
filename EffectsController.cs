@@ -24,14 +24,6 @@ namespace MecanimEffects {
 		/// </summary>
 		private LayerInfo[] layerState = new LayerInfo[0];
 		/// <summary>
-		/// List of effects what asked to last for one more frame.
-		/// </summary>
-		private List<System.Action> tail = new List<System.Action>();
-		/// <summary>
-		/// Copy of tail so original array could be modified while the controller is processing it's copy.
-		/// </summary>
-		private List<System.Action> tailCopy = new List<System.Action>();
-		/// <summary>
 		/// The active bindings.
 		/// </summary>
 		private List<AnimatorStateBinding> activeBindings = new List<AnimatorStateBinding>();
@@ -51,8 +43,6 @@ namespace MecanimEffects {
 			}
 			// TODO Following lines will cause a wired exception when called from within acivating bindig or effects being tailed.
 			activeBindings.Clear();
-			tail.Clear();
-			tailCopy.Clear();
 		}
 		/// <summary>
 		/// Awakes this instance.
@@ -74,16 +64,7 @@ namespace MecanimEffects {
 			if(layerState == null || layerState.Length != animator.layerCount) return;
 			if(animator == null) return;
 
-			// Tail all effects from previous frame, if any.
-			// Any effect cam request to be tailed for one more frame while tailed this frame. That's why array is
-			// being copied and cleared before procesing is done.
-
-			tailCopy.Clear();
-			tailCopy.AddRange(tail);
-			tail.Clear();	// Tail must be cleared exactly here, right after copying and prior to processing.
-			tailCopy.ForEach(action => action());
-
-			// Enter, Exit and Update messages shall be properly ordered using this arrays.
+			// This arrays are required to ensure sending all exit messages before all enter messages.
 			
 			var exits = new List<AnimatorStateBinding>();
 			var enters = new List<AnimatorStateBinding>();
@@ -91,6 +72,11 @@ namespace MecanimEffects {
 			// Process all the animator's layers and handle their activity changes.
 
 			for(var layer = 0; layer < animator.layerCount; layer++) {
+
+				// Clear the lists so they can be reused from previous layer's states if any.
+				
+				exits.Clear();
+				enters.Clear();
 
 				// Check if animator is in transition and read it's state or transition info correspondingly.
 
@@ -106,11 +92,16 @@ namespace MecanimEffects {
 
 				UpdateLayerStateInfo(inTransition, layer, changed);
 
-				// Fill in the lists of bindings to be informed of exit, enter and/or update.
-				// TODO Index binding by mapping state name hashes to them using Dictionary to avoid double loop.
+				// Handle the state change if any.
 
-				foreach(var binding in bindings) {
-					if(changed) {
+				if(changed) {
+
+					Trace("EffectsController.Update: {0} > {1}", layerState[layer].prevState.nameHash, stateInfo.nameHash);
+
+					// Fill in the lists of bindings to be informed of exit, enter and/or update.
+					// TODO Index binding by mapping state name hashes to them using Dictionary to avoid double loop.
+
+					foreach(var binding in bindings) {
 						if(layerState[layer].prevState.IsName(binding.stateName)) {
 							activeBindings.Remove(binding);
 							exits.Add(binding);
@@ -120,30 +111,23 @@ namespace MecanimEffects {
 							enters.Add(binding);
 						}
 					}
+
+					// Send exit and enter coroutines of the appopriate bindings.
+					
+					foreach(var binding in exits) {
+						binding.Exit(layerState[layer]);
+					}
+					foreach(var binding in enters) {
+						binding.Enter(layerState[layer]);
+					}
 				}
 
-				// Next we send messages to the bindings in proper order (Exit - Enter - Update).
+				// Update all active bindings.
 
-				// FIXME Doing this here is completely wrong from the performance point. I need to figure out how to
-				//		 find binding's layer to do all updates by looping through activeBindings later (see comments
-				//       below). The BEST SOLUTION would be to send all messages to bindings after the big loop at once.
-
-				foreach(var b in exits) b.Exit(layerState[layer]);
-				foreach(var b in enters) b.Enter(layerState[layer]);
-				foreach(var b in activeBindings) b.Update(layerState[layer]);
-
-				// Finally clear the lists so they can be reused in next loop iteration.
-
-				exits.Clear();
-				enters.Clear();
-
+				foreach(var binding in activeBindings) {
+					binding.Update(layerState[layer]);
+				}
 			}
-
-			// At last, update all active bindings.
-			// foreach(var binding in activeBindings) {
-			//     WTF HOW TO GET THE LAYER ?!?
-			// }
-
 		}
 		/// <summary>
 		/// Returns the effect controller state information for the animator layer specified.
@@ -151,12 +135,6 @@ namespace MecanimEffects {
 		public LayerInfo GetLayerStateInfo(int layerIndex) {
 			if(layerIndex < 0 || layerIndex >= layerState.Length) return null;
 			return layerState[layerIndex];
-		}
-		/// <summary>
-		/// Tails the action for one more frame. The action can then tail itself for more if needed.
-		/// </summary>
-		public void Tail(System.Action tailAction) {
-			tail.Add(tailAction);
 		}
 		/// <summary>
 		/// Prints a trace message to console if configured. Use this to trace effects execution only.
@@ -177,7 +155,7 @@ namespace MecanimEffects {
 				}
 				else {
 					// TODO This way transition time is inaccurate, but no other way to get it introduced yet.
-					layerState[layer].transitionSeconds = float.Epsilon;
+					layerState[layer].transitionSeconds = .0f;
 				}
 				layerState[layer].transition = animator.GetAnimatorTransitionInfo(layer);
 			}

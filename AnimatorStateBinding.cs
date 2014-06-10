@@ -47,13 +47,16 @@ namespace MecanimEffects {
 			System.Array.ForEach(effects, effect => effect.Reset());
 		}
 		/// <summary>
-		/// When binding enters the active state all effects are started.
+		/// Plays all effects, bound to the animator's state.
 		/// </summary>
 		public void Enter(LayerInfo li) {
 			li.controller.Trace("AnimatorStateBinding.Enter: {0}", stateName);
-			if(!string.IsNullOrEmpty(enterMessage))
+			if(!string.IsNullOrEmpty(enterMessage)) {
 				li.controller.gameObject.SendMessage(enterMessage, li, SendMessageOptions.RequireReceiver);
-			System.Array.ForEach(effects, effect => effect.Play(li));
+			}
+			foreach(var effect in effects) {
+				effect.Play(li);
+			}
 		}
 		/// <summary>
 		/// Checks and sends update and timer messages when needed.
@@ -74,13 +77,16 @@ namespace MecanimEffects {
 			}
 		}
 		/// <summary>
-		/// When binding exits active state all effects are stopped.
+		/// Stops all effects, bound to the animator's state.
 		/// </summary>
 		public void Exit(LayerInfo li) {
 			li.controller.Trace("AnimatorStateBinding.Exit: {0}", stateName);
-			if(!string.IsNullOrEmpty(exitMessage))
+			if(!string.IsNullOrEmpty(exitMessage)) {
 				li.controller.gameObject.SendMessage(exitMessage, li, SendMessageOptions.RequireReceiver);
-			System.Array.ForEach(effects, effect => effect.Stop(li));
+			}
+			foreach(var effect in effects) {
+				effect.Stop(li);
+			}
 		}
 	}
 }
