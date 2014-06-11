@@ -28,19 +28,20 @@ namespace MecanimEffects {
 		/// </summary>
 		private List<AnimatorStateBinding> activeBindings = new List<AnimatorStateBinding>();
 		/// <summary>
-		/// The frame number for debug purposes.
-		/// </summary>
-		private int frameNo;
-		/// <summary>
 		/// Tries to provide good default values and allows reuse of this instance.
 		/// </summary>
 		private void Reset() {
 			if(animator == null) animator = GetComponent<Animator>();
 			if(animator != null) {
 				layerState = new LayerInfo[animator.layerCount];
-				for(var i = 0; i < layerState.Length; i++) layerState[i] = new LayerInfo(this);
-				foreach(var binding in bindings) binding.Reset();
+				for(var i = 0; i < layerState.Length; i++) {
+					layerState[i] = new LayerInfo(this, i);
+				}
+				foreach(var binding in bindings) {
+					binding.Reset();
+				}
 			}
+			// WTF is the next line comment? Can't remember what it means. Should not write such comments in the future.
 			// TODO Following lines will cause a wired exception when called from within acivating bindig or effects being tailed.
 			activeBindings.Clear();
 		}
@@ -54,10 +55,6 @@ namespace MecanimEffects {
 		/// Updates effects bindings for this instance.
 		/// </summary>
 		private void Update() {
-			// First of all we increment frames counter.
-
-			frameNo++;
-
 			// This is where main MecanimEffects magic is done and it is heavily commented. Do not expect other
 			// functions to be documented that much, i'm too lazy for that.
 
@@ -78,41 +75,33 @@ namespace MecanimEffects {
 				exits.Clear();
 				enters.Clear();
 
-				// Check if animator is in transition and read it's state or transition info correspondingly.
+				// Update the layer state info to reflect the state machine changes.
 
-				var inTransition = animator.IsInTransition(layer);
-				var stateInfo = inTransition ? animator.GetNextAnimatorStateInfo(layer) : animator.GetCurrentAnimatorStateInfo(layer);
-
-				// Animator state change is counted when animator previously was not in transition and this frame enters
-				// a transition or new state (when transition length is zero).
-
-				var changed = !layerState[layer].inTransition && (inTransition || stateInfo.nameHash != layerState[layer].state.nameHash);
-
-				// Update the layer state to reflect changes. Note all checks are made before update.
-
-				UpdateLayerStateInfo(inTransition, layer, changed);
+				layerState[layer].Update();
 
 				// Handle the state change if any.
 
-				if(changed) {
+				if(layerState[layer].stateChanged) {
 
-					Trace("EffectsController.Update: {0} > {1}", layerState[layer].prevState.nameHash, stateInfo.nameHash);
+					// FIXME Without prev and next state names this info is not very useful here.
+
+					Trace("EffectsController.Update: state has changed");
 
 					// Fill in the lists of bindings to be informed of exit, enter and/or update.
 					// TODO Index binding by mapping state name hashes to them using Dictionary to avoid double loop.
 
 					foreach(var binding in bindings) {
 						if(layerState[layer].prevState.IsName(binding.stateName)) {
-							activeBindings.Remove(binding);
 							exits.Add(binding);
+							activeBindings.Remove(binding);
 						}
-						if(stateInfo.IsName(binding.stateName)) {
+						if(layerState[layer].state.IsName(binding.stateName)) {
 							activeBindings.Add(binding);
 							enters.Add(binding);
 						}
 					}
 
-					// Send exit and enter coroutines of the appopriate bindings.
+					// Invoke exit and enter on the bindings found.
 					
 					foreach(var binding in exits) {
 						binding.Exit(layerState[layer]);
@@ -139,34 +128,10 @@ namespace MecanimEffects {
 		/// <summary>
 		/// Prints a trace message to console if configured. Use this to trace effects execution only.
 		/// </summary>
+		/// [System.Diagnostics.Conditional("DEBUG")]
 		public void Trace(string format, params object[] args) {
 			if(!trace) return;
-			Debug.Log(frameNo + ". " + string.Format(format, args), gameObject);
-		}
-		/// <summary>
-		/// Updates the state of the selected layer with actual data.
-		/// </summary>
-		private void UpdateLayerStateInfo(bool inTransition, int layer, bool changed) {
-			// TODO Refactor this function to be a part of LayerInfo class.
-			layerState[layer].inTransition = inTransition;
-			if(inTransition) {
-				if(layerState[layer].inTransition) {
-					layerState[layer].transitionSeconds += Time.deltaTime;
-				}
-				else {
-					// TODO This way transition time is inaccurate, but no other way to get it introduced yet.
-					layerState[layer].transitionSeconds = .0f;
-				}
-				layerState[layer].transition = animator.GetAnimatorTransitionInfo(layer);
-			}
-			else {
-				var stateInfo = animator.GetCurrentAnimatorStateInfo(layer);
-				layerState[layer].prevState = layerState[layer].state;
-				layerState[layer].state = stateInfo;
-				layerState[layer].loopCount = Mathf.FloorToInt(stateInfo.normalizedTime);
-				layerState[layer].stateSeconds = stateInfo.length * (stateInfo.normalizedTime - layerState[layer].loopCount);
-				layerState[layer].stateSecondsTotal = stateInfo.length * stateInfo.normalizedTime;
-			}
+			Debug.Log(Time.frameCount + ". " + string.Format(format, args), gameObject);
 		}
 	}
 }
