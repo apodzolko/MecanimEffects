@@ -128,7 +128,7 @@ namespace MecanimEffects {
 		/// <summary>
 		/// Prints a trace message to console if configured. Use this to trace effects execution only.
 		/// </summary>
-		/// [System.Diagnostics.Conditional("DEBUG")]
+		[System.Diagnostics.Conditional("UNITY_EDITOR")]
 		public void Trace(string format, params object[] args) {
 			if(!trace) return;
 			Debug.Log(Time.frameCount + ". " + string.Format(format, args), gameObject);
