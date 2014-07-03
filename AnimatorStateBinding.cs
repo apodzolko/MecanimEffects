@@ -36,15 +36,15 @@ namespace MecanimEffects {
 		/// </summary>
 		public AnimatorEffect[] effects;
 		/// <summary>
-		/// Shows if timer notification was already sent in this loop.
+		/// When last timer was started.
 		/// </summary>
-		private bool timerNotificationSent;
+		private float timestamp;
 		/// <summary>
 		/// Reset this instance to default state.
 		/// </summary>
 		public void Reset() {
-			timerNotificationSent = false;
 			System.Array.ForEach(effects, effect => effect.Reset());
+			timestamp = .0f;
 		}
 		/// <summary>
 		/// Plays all effects, bound to the animator's state.
@@ -57,6 +57,9 @@ namespace MecanimEffects {
 			foreach(var effect in effects) {
 				effect.Play(li);
 			}
+			if(timerTreshold != .0f && !string.IsNullOrEmpty(timerMessage)) {
+				li.controller.StartCoroutine(TimerCoroutine(li));
+			}
 		}
 		/// <summary>
 		/// Checks and sends update and timer messages when needed.
@@ -65,16 +68,6 @@ namespace MecanimEffects {
 			li.controller.Trace("AnimatorStateBinding.Update: {0}", stateName);
 			if(!string.IsNullOrEmpty(updateMessage))
 				li.controller.gameObject.SendMessage(updateMessage, li, SendMessageOptions.RequireReceiver);
-			if(string.IsNullOrEmpty(timerMessage)) return;
-			if(timerTreshold == .0f) return;
-			if(timerNotificationSent && li.stateSeconds <= timerTreshold) {
-				timerNotificationSent = false;
-			}
-			else if(!timerNotificationSent && li.stateSeconds > timerTreshold) {
-				li.controller.Trace("AnimatorStateBinding.Update#Timer: {0}", stateName);
-				li.controller.gameObject.SendMessage(timerMessage, li, SendMessageOptions.RequireReceiver);
-				timerNotificationSent = true;
-			}
 		}
 		/// <summary>
 		/// Stops all effects, bound to the animator's state.
@@ -87,6 +80,20 @@ namespace MecanimEffects {
 			foreach(var effect in effects) {
 				effect.Stop(li);
 			}
+		}
+		/// <summary>
+		/// Sends a timer message if state still active after the timer treshold.
+		/// </summary>
+		private IEnumerator TimerCoroutine(LayerInfo li) {
+			var timestamp = this.timestamp = Time.time;
+			yield return new WaitForSeconds(timerTreshold);
+
+			// execution of coroutine will be continued here after some time
+
+			if(timestamp != this.timestamp) yield return null;
+			if(!li.state.IsName(stateName)) yield return null;
+			li.controller.Trace("AnimatorStateBinding.Timer: {0}", stateName);
+			li.controller.gameObject.SendMessage(timerMessage, li, SendMessageOptions.RequireReceiver);
 		}
 	}
 }
