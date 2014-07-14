@@ -22,7 +22,7 @@ namespace MecanimEffects {
 		/// <summary>
 		/// The state info for all animator's layers.
 		/// </summary>
-		private LayerInfo[] layerState = new LayerInfo[0];
+		private LayerInfo[] layerState;
 		/// <summary>
 		/// The active bindings.
 		/// </summary>
@@ -37,8 +37,10 @@ namespace MecanimEffects {
 				for(var i = 0; i < layerState.Length; i++) {
 					layerState[i] = new LayerInfo(this, i);
 				}
-				foreach(var binding in bindings) {
-					binding.Reset();
+				if(bindings != null) {
+					foreach(var binding in bindings) {
+						binding.Reset();
+					}
 				}
 			}
 			// WTF is the next line comment? Can't remember what it means. Should not write such comments in the future.
