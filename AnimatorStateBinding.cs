@@ -8,6 +8,22 @@ namespace MecanimEffects {
 	[System.Serializable]
 	public sealed class AnimatorStateBinding {
 		/// <summary>
+		/// Occurs when animator enters the state bound.
+		/// </summary>
+		public event EventHandler<AnimatorStateBinding, LayerInfo> OnEnter;
+		/// <summary>
+		/// Occurs every frame while the animatior remains in the state bound.
+		/// </summary>
+		public event EventHandler<AnimatorStateBinding, LayerInfo> OnUpdate;
+		/// <summary>
+		/// Occurs when timer reached it's value while animator remains in the state bound.
+		/// </summary>
+		public event EventHandler<AnimatorStateBinding, LayerInfo> OnTimer;
+		/// <summary>
+		/// Occurs when animator exits the state bound.
+		/// </summary>
+		public event EventHandler<AnimatorStateBinding, LayerInfo> OnExit;
+		/// <summary>
 		/// The name of the state (readonly).
 		/// </summary>
 		public string stateName;
@@ -51,6 +67,9 @@ namespace MecanimEffects {
 		/// </summary>
 		public void Enter(LayerInfo li) {
 			li.controller.Trace("AnimatorStateBinding.Enter: {0}", stateName);
+			if(OnEnter != null) {
+				OnEnter(this, li);
+			}
 			if(!string.IsNullOrEmpty(enterMessage)) {
 				li.controller.gameObject.SendMessage(enterMessage, li, SendMessageOptions.RequireReceiver);
 			}
@@ -66,14 +85,21 @@ namespace MecanimEffects {
 		/// </summary>
 		public void Update(LayerInfo li) {
 			li.controller.Trace("AnimatorStateBinding.Update: {0}", stateName);
-			if(!string.IsNullOrEmpty(updateMessage))
+			if(OnUpdate != null) {
+				OnUpdate(this, li);
+			}
+			if(!string.IsNullOrEmpty(updateMessage)) {
 				li.controller.gameObject.SendMessage(updateMessage, li, SendMessageOptions.RequireReceiver);
+			}
 		}
 		/// <summary>
 		/// Stops all effects, bound to the animator's state.
 		/// </summary>
 		public void Exit(LayerInfo li) {
 			li.controller.Trace("AnimatorStateBinding.Exit: {0}", stateName);
+			if(OnExit != null) {
+				OnExit(this, li);
+			}
 			if(!string.IsNullOrEmpty(exitMessage)) {
 				li.controller.gameObject.SendMessage(exitMessage, li, SendMessageOptions.RequireReceiver);
 			}
@@ -93,6 +119,9 @@ namespace MecanimEffects {
 			if(timestamp != this.timestamp) yield return null;
 			if(!li.state.IsName(stateName)) yield return null;
 			li.controller.Trace("AnimatorStateBinding.Timer: {0}", stateName);
+			if(OnTimer != null) {
+				OnTimer(this, li);
+			}
 			li.controller.gameObject.SendMessage(timerMessage, li, SendMessageOptions.RequireReceiver);
 		}
 	}

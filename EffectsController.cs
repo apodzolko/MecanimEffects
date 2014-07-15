@@ -128,6 +128,60 @@ namespace MecanimEffects {
 			return layerState[layerIndex];
 		}
 		/// <summary>
+		/// Enumerates all bindings for the given state.
+		/// </summary>
+		public IEnumerable<AnimatorStateBinding> Bindings(string stateName) {
+			return bindings.Where(b => b.stateName == stateName);
+		}
+		/// <summary>
+		/// Subscribes the handler to the OnEnter event of the binding to the state given.
+		/// </summary>
+		public void Subscribe(string stateName,
+			EventHandler<AnimatorStateBinding, LayerInfo> onEnter,
+			EventHandler<AnimatorStateBinding, LayerInfo> onUpdate,
+			EventHandler<AnimatorStateBinding, LayerInfo> onTimer,
+			EventHandler<AnimatorStateBinding, LayerInfo> onExit) {
+			foreach(var binding in Bindings(stateName)) {
+				if(onEnter != null) {
+					binding.OnEnter += onEnter;
+				}
+				if(onUpdate != null) {
+					binding.OnUpdate += onUpdate;
+				}
+				if(onTimer != null) {
+					binding.OnTimer += onTimer;
+				}
+				if(onExit != null) {
+					binding.OnExit += onExit;
+				}
+			}
+		}
+		/// <summary>
+		/// Subscribes the handler to the OnEnter event of the binding to the state given.
+		/// </summary>
+		public void Unsubscribe(string stateName,
+			EventHandler<AnimatorStateBinding, LayerInfo> onEnter,
+			EventHandler<AnimatorStateBinding, LayerInfo> onUpdate,
+			EventHandler<AnimatorStateBinding, LayerInfo> onTimer,
+			EventHandler<AnimatorStateBinding, LayerInfo> onExit) {
+			// Counting the layer of indirection here, list of bindings might be different from as it was when subscribed.
+			// But who will use dynamic bindings? Definitely noone. LOL.
+			foreach(var binding in Bindings(stateName)) {
+				if(onEnter != null) {
+					binding.OnEnter -= onEnter;
+				}
+				if(onUpdate != null) {
+					binding.OnUpdate -= onUpdate;
+				}
+				if(onTimer != null) {
+					binding.OnTimer -= onTimer;
+				}
+				if(onExit != null) {
+					binding.OnExit -= onExit;
+				}
+			}
+		}
+		/// <summary>
 		/// Prints a trace message to console if configured. Use this to trace effects execution only.
 		/// </summary>
 		[System.Diagnostics.Conditional("UNITY_EDITOR")]
