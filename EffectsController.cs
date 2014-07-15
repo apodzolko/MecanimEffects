@@ -8,6 +8,10 @@ namespace MecanimEffects {
 	/// </summary>
 	public sealed class EffectsController : MonoBehaviour {
 		/// <summary>
+		/// Occurs when the animator's state is changed.
+		/// </summary>
+		public event EventHandler<EffectsController, LayerInfo> OnChanged;
+		/// <summary>
 		/// The animator shortcut.
 		/// </summary>
 		public Animator animator;
